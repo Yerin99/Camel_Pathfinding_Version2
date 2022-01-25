@@ -100,7 +100,7 @@ class SnakeAndApple:
         self.canvas.delete("all")
         score_text = "Scores \n"
 
-        # put gif image on canvas
+        # put gif image on canvasq
         # pic's upper left corner (NW) on the canvas is at x=50 y=10
 
         self.canvas.create_text(

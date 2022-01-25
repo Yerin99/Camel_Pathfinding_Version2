@@ -4,14 +4,17 @@ from PIL import Image, ImageDraw, ImageTk
 from matplotlib.pyplot import grid
 import numpy as np
 import time
+
+from pyparsing import White
 # Define useful parameters
-imagewidth = 2200
-width = 2300
-height = 902
+imagewidth = 1400
+width = 1700
+imageheight=600;
+height = 700;
 horizontalStepCount = 100
-verticalStepCount = height//(imagewidth//horizontalStepCount)
+verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
 length = imagewidth//horizontalStepCount
-Color = {0: "none", 1: "grey", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
+Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
 
 
 class AStarPathFinding:
@@ -25,34 +28,40 @@ class AStarPathFinding:
         imgpath = "Images/background.png"
         img = Image.open(imgpath)
         self.photo = ImageTk.PhotoImage(img)
-        self.canvas = Canvas(self.window, width=width, height=height)
+        self.pnu= ImageTk.PhotoImage(Image.open("Images/pnu.png"))
+        self.camel= ImageTk.PhotoImage(Image.open("Images/camel2.png"))
+        self.canvas = Canvas(self.window, width=width, height=height, background="white")
         self.canvas.pack()
         self.reset()
+        self.command = Entry(self.window, width=35, borderwidth=3)
+        self.command.place(x=1420, y=570)
+        self.command.bind("<Return>",self.commandfunc)
+        self.cmdwindow=Label(self.window, width=34, height=35, background="white", anchor=NW, justify="left", relief="groove", padx=5, pady=5)
+        self.cmdwindow.place(x=1420, y=15)
+        self.commandlog=""
         self.window.bind("<Button-1>", self.click)
-        Button(self.window, text="none", font=36, fg="black",
-               command=self.BTnone).place(x=2220, y=50)
-        Button(self.window, text="wall", font=36, fg="black",
-               command=self.BTwall).place(x=2220, y=150)
-        Button(self.window, text="start", font=36, fg="black",
-               command=self.BTstart).place(x=2220, y=250)
-        Button(self.window, text="goal", font=36, fg="black",
-               command=self.BTgoal).place(x=2220, y=350)
-        Button(self.window, text="astar", font=36, fg="black",
-               command=self.BTastar).place(x=2220, y=450)
-        Button(self.window, text="reset", font=36, fg="black",
-               command=self.reset).place(x=2220, y=550)
-        Button(self.window, text="save", font=36, fg="black",
-               command=self.BTsave).place(x=2220, y=650)
-        Button(self.window, text="load", font=36, fg="black",
-               command=self.BTload).place(x=2220, y=750)
+        Button(self.window, text="none", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTnone).place(x=380, y=630)
+        Button(self.window, text="wall", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTwall).place(x=470, y=630)
+        Button(self.window, text="start", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTstart).place(x=560, y=630)
+        Button(self.window, text="goal", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTgoal).place(x=650, y=630)
+        Button(self.window, text="astar", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTastar).place(x=740, y=630)
+        Button(self.window, text="reset", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.reset).place(x=830, y=630)
+        Button(self.window, text="save", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTsave).place(x=920, y=630)
+        Button(self.window, text="load", font=36, fg="black", background="white", height = 2, width = 6,
+               command=self.BTload).place(x=1010, y=630)
 
+    
     # initialize the board matrix to 0
     def boardZero(self):
         self.board = []
-        for i in range(verticalStepCount):
-            for j in range(horizontalStepCount):
-                self.board = np.zeros(
-                    shape=(verticalStepCount, horizontalStepCount))  # fixed
+        self.board = np.zeros(shape=(verticalStepCount, horizontalStepCount))
 
     # fill board regard to matrix and create line
     def initialize_board(self):
@@ -61,10 +70,10 @@ class AStarPathFinding:
                 tagname = "rect"+self.convertRecNum(j)+self.convertRecNum(i)
                 if(self.board[i][j] == 0):  # none #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname)
+                        j*length, i*length, (j+1)*length, (i+1)*length ,tag=tagname)
                 elif(self.board[i][j] == 1):  # wall #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="grey")
+                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="white" ,outline="black")
                 elif(self.board[i][j] == 2):  # start #fixed
                     self.canvas.create_rectangle(
                         j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="green")
@@ -72,20 +81,12 @@ class AStarPathFinding:
                     self.canvas.create_rectangle(
                         j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="red")
 
-        for i in range(horizontalStepCount+1):  # horizontal line
-            self.canvas.create_line(
-                imagewidth/horizontalStepCount*i, 0, imagewidth/horizontalStepCount*i, height,
-            )
-
-        for i in range(verticalStepCount+1):  # vertical line
-            self.canvas.create_line(
-                0, i * height / verticalStepCount, imagewidth, i * height / verticalStepCount,
-            )
-
     # reset board
     def reset(self):
         self.boardZero()
-        self.canvas.create_image(1093, 451, image=self.photo)
+        self.canvas.create_image(180, 648, image=self.pnu)
+        self.canvas.create_image(1240, 650, image=self.camel)
+        self.canvas.create_image(700, 290, image=self.photo)
         self.initialize_board()
         self.modenumber = 0
         self.startcount = 0
@@ -155,20 +156,16 @@ class AStarPathFinding:
                 # openList에서 제거하고 closedList에 추가
                 openList.pop(currentIdx)
                 closedList.append(currentNode)
-                self.canvas.create_rectangle(
-                    (currentNode.position[1])*length, (currentNode.position[0])*length, (currentNode.position[1]+1)*length, (currentNode.position[0]+1)*length, fill="yellow")
+                def drawnode(currentNode):
+                    self.canvas.create_rectangle(
+                        (currentNode.position[1])*length, (currentNode.position[0])*length, (currentNode.position[1]+1)*length, (currentNode.position[0]+1)*length, fill="lawn green")
+                    self.window.update()  
+                                       
+                self.window.update()
+                self.window.after(10,drawnode(currentNode))
                 # 현재 노드가 목적지면 current.position 추가하고
                 # current의 부모로 이동
-                if currentNode.position == endNode.position:
-                    path = []
-                    current = currentNode
-                    while current is not None:
-                        path.append(current.position)
-                        current = current.parent
-                    print(
-                        '!!!!!!!!!!!!!!!!!!!!!!!!!PATH!!!!!!!!!!!!!!!!!!!!!!!!!\n', path)
-                    cells = path[::-1]
-                    for cell in cells:
+                def findpath(cell):
                         if cells.index(cell) == 0:
                             self.canvas.create_rectangle(
                                 (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="green")
@@ -177,8 +174,18 @@ class AStarPathFinding:
                                 (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="red")
                         else:
                             self.canvas.create_rectangle(
-                                (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="pink")
-                        # time.sleep(0.5)
+                                (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="yellow")
+                        self.window.update()
+                if currentNode.position == endNode.position:
+                    path = []
+                    current = currentNode
+                    while current is not None:
+                        path.append(current.position)
+                        current = current.parent
+                    cells = path[::-1]
+                    for cell in cells:
+                        self.window.update()
+                        self.window.after(10,findpath(cell))
                     return
 
                 children = []
@@ -225,9 +232,13 @@ class AStarPathFinding:
                     if len([openNode for openNode in openList
                             if child == openNode and child.g > openNode.g]) > 0:
                         continue
-
-                    self.canvas.create_rectangle(
-                        (child.position[1])*length, (child.position[0])*length, (child.position[1]+1)*length, (child.position[0]+1)*length, fill="blue")
+                    
+                    def drawlist(child):
+                        self.canvas.create_rectangle(
+                        (child.position[1])*length, (child.position[0])*length, (child.position[1]+1)*length, (child.position[0]+1)*length, fill="dodger blue")
+                        self.window.update()
+                    self.window.update()
+                    self.window.after(10,drawlist(child))
                     openList.append(child)
                     # time.sleep(0.5)
 
@@ -243,15 +254,15 @@ class AStarPathFinding:
         self.newWindow.geometry("350x250")
         self.newWindow.resizable(False, False)
         Label(self.newWindow, text="filename").place(x=30, y=50)
-        self.filename = Entry(self.newWindow, width=20)
-        self.filename.place(x=100, y=50)
+        # self.filename = Entry(self.newWindow, width=20)
+        # self.filename.place(x=100, y=50)
         Button(self.newWindow, text="Ok",
                command=self.filesave).place(x=30, y=130)
 
     def filesave(self):
-        np.save(self.filename.get()+".npy", self.board, 'x')
+        np.save(self.filename+".npy", self.board, 'x')
         messagebox.showinfo("Notion", "save completed")
-        self.newWindow.destroy()
+        # self.newWindow.destroy()
 
     def BTload(self):
         self.newWindow = Toplevel(self.window)
@@ -265,11 +276,13 @@ class AStarPathFinding:
                command=self.fileload).place(x=30, y=130)
 
     def fileload(self):
-        self.board = np.load(self.filename.get()+".npy")
+        self.board = np.load(self.filename+".npy")
         messagebox.showinfo("Notion", "load completed")
-        self.newWindow.destroy()
+        # self.newWindow.destroy()
         self.canvas.delete("all")
-        self.canvas.create_image(1093, 451, image=self.photo)
+        self.canvas.create_image(700, 290, image=self.photo)
+        self.canvas.create_image(180, 648, image=self.pnu)
+        self.canvas.create_image(1240, 650, image=self.camel)
         self.initialize_board()
         self.loadcount()
 
@@ -339,32 +352,45 @@ class AStarPathFinding:
         grid_position = [event.x, event.y]
         logical_position = self.convert_grid_to_logical_position(grid_position)
         # 버튼 눌렀을 때 사각형이 클릭되었다고 인식하지않기 위해
-        if logical_position[0] > 3 or logical_position[1] > 3:
-            if not self.is_grid_occupied(logical_position):
-                if self.modenumber == 2:
-                    if self.startcount == 0:
-                        self.drawRec(logical_position)
-                        self.startcount += 1
-                elif self.modenumber == 3:
-                    if self.goalcount == 0:
-                        self.drawRec(logical_position)
-                        self.goalcount += 1
-                else:
-                    self.drawRec(logical_position)
-            else:
-                # fixed
-                if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
+        if logical_position[0] < horizontalStepCount and logical_position[1] <verticalStepCount :
+            if logical_position[0] > 4 or logical_position[1] > 3:
+                if not self.is_grid_occupied(logical_position):
                     if self.modenumber == 2:
-                        if self.startcount == 1:
-                            self.deleteRec(logical_position)
-                            self.startcount -= 1
+                        if self.startcount == 0:
+                            self.drawRec(logical_position)
+                            self.startcount += 1
                     elif self.modenumber == 3:
-                        if self.goalcount == 1:
-                            self.deleteRec(logical_position)
-                            self.goalcount -= 1
+                        if self.goalcount == 0:
+                            self.drawRec(logical_position)
+                            self.goalcount += 1
                     else:
-                        self.deleteRec(logical_position)
-
-
+                        self.drawRec(logical_position)
+                else:
+                    # fixed
+                    if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
+                        if self.modenumber == 2:
+                            if self.startcount == 1:
+                                self.deleteRec(logical_position)
+                                self.startcount -= 1
+                        elif self.modenumber == 3:
+                            if self.goalcount == 1:
+                                self.deleteRec(logical_position)
+                                self.goalcount -= 1
+                        else:
+                            self.deleteRec(logical_position)
+    def commandfunc(self, event):
+        command=str(self.command.get())
+        self.commandlog+=command+"\n"
+        self.command.delete(0,len(command))
+        commandList=command.split(" ")
+        if commandList[0] == "save" :
+            self.filename=commandList[1]
+            self.filesave()
+        elif commandList[0] =="load" :
+            self.filename=commandList[1]
+            self.fileload()
+        elif commandList[0] =="clear":
+            self.commandlog=""
+        self.cmdwindow.config(text=self.commandlog)
 game_instance = AStarPathFinding()
 game_instance = mainloop()
