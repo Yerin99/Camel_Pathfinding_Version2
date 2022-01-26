@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
+from tkinter import scrolledtext
 from PIL import Image, ImageDraw, ImageTk
 from matplotlib.pyplot import grid
 import numpy as np
@@ -36,8 +37,20 @@ class AStarPathFinding:
         self.command = Entry(self.window, width=35, borderwidth=3)
         self.command.place(x=1420, y=570)
         self.command.bind("<Return>",self.commandfunc)
-        self.cmdwindow=Label(self.window, width=34, height=35, background="white", anchor=NW, justify="left", relief="groove", padx=5, pady=5)
-        self.cmdwindow.place(x=1420, y=15)
+        #scrollbar start
+        self.frame=Frame(self.window, relief="ridge", width=260, height=540)
+        self.frame.place(x=1420, y=15)
+        self.scrollbar=Scrollbar(self.frame)
+        self.scrollbar.pack(side="right",fill="y")
+        self.cmdwindow=Text(self.frame, width=34, height=41, background="white", relief="groove", yscrollcommand=self.scrollbar.set, wrap="word")
+        # for line in range(1,1001):
+        #     self.cmdwindow.insert(INSERT, str(line) + "/1000\n")
+        self.cmdwindow.config(state="disabled")
+        self.scrollbar.config(command=self.cmdwindow.yview)
+        self.cmdwindow.pack()
+        #end
+        # self.cmdwindow=Label(self.window, width=34, height=35, background="white", anchor=NW, justify="left", relief="groove", padx=5, pady=5)
+        # self.cmdwindow.place(x=1420, y=15)
         self.commandlog=""
         self.window.bind("<Button-1>", self.click)
         Button(self.window, text="none", font=36, fg="black", background="white", height = 2, width = 6,
@@ -354,8 +367,10 @@ class AStarPathFinding:
                             self.deleteRec(logical_position)
     def commandfunc(self, event):
         command=str(self.command.get())
-        self.commandlog+=command+"\n"
         self.command.delete(0,len(command))
+        self.cmdwindow.config(state="normal")
+        self.cmdwindow.insert(INSERT,">> "+command+"\n")
+        self.cmdwindow.config(state="disable")
         commandList=command.split(" ")
         if commandList[0] == "save" :
             self.filename=commandList[1]
@@ -364,7 +379,9 @@ class AStarPathFinding:
             self.filename=commandList[1]
             self.fileload()
         elif commandList[0] =="clear":
-            self.commandlog=""
-        self.cmdwindow.config(text=self.commandlog)
+            self.cmdwindow.config(state="normal")
+            self.cmdwindow.delete(1.0,END)
+            self.cmdwindow.config(state="disable")
+        self.cmdwindow.see(END)
 game_instance = AStarPathFinding()
 game_instance = mainloop()
