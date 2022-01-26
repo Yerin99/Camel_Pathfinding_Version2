@@ -15,7 +15,6 @@ height = 700;
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
 length = imagewidth//horizontalStepCount
-print(verticalStepCount)
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
 
 
@@ -283,7 +282,7 @@ class AStarPathFinding:
             if img.size[1] > 600:
                 img_resize=img.resize((int(img.size[0]*(600/img.size[1])),600))
             else :
-                img_reize=img
+                img_resize=img
         self.photo = ImageTk.PhotoImage(img_resize)
         self.canvas.create_image(700, 300, image=self.photo)
         self.initialize_board()
