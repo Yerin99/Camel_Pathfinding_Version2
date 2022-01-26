@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import scrolledtext
 from PIL import Image, ImageDraw, ImageTk
-from matplotlib.pyplot import grid
+from matplotlib.pyplot import grid, text
 import numpy as np
 import time
 
@@ -15,6 +15,7 @@ height = 700;
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
 length = imagewidth//horizontalStepCount
+print(verticalStepCount)
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
 
 
@@ -26,32 +27,29 @@ class AStarPathFinding:
         self.window = Tk()
         self.window.resizable(False, False)
         self.window.title("AStarPathFinding")
-        imgpath = "Images/pnu.png"
-        img = Image.open(imgpath)
-        self.photo = ImageTk.PhotoImage(img)
         self.pnu= ImageTk.PhotoImage(Image.open("Logo/pnu_logo.png"))
         self.camel= ImageTk.PhotoImage(Image.open("Logo/camel_logo.png"))
         self.canvas = Canvas(self.window, width=width, height=height, background="white")
         self.canvas.pack()
         self.reset()
         self.command = Entry(self.window, width=35, borderwidth=3)
-        self.command.place(x=1420, y=570)
+        self.command.place(x=1420, y=565)
         self.command.bind("<Return>",self.commandfunc)
-        #scrollbar start
         self.frame=Frame(self.window, relief="ridge", width=260, height=540)
         self.frame.place(x=1420, y=15)
         self.scrollbar=Scrollbar(self.frame)
         self.scrollbar.pack(side="right",fill="y")
         self.cmdwindow=Text(self.frame, width=34, height=41, background="white", relief="groove", yscrollcommand=self.scrollbar.set, wrap="word")
-        # for line in range(1,1001):
-        #     self.cmdwindow.insert(INSERT, str(line) + "/1000\n")
         self.cmdwindow.config(state="disabled")
         self.scrollbar.config(command=self.cmdwindow.yview)
         self.cmdwindow.pack()
-        #end
-        # self.cmdwindow=Label(self.window, width=34, height=35, background="white", anchor=NW, justify="left", relief="groove", padx=5, pady=5)
-        # self.cmdwindow.place(x=1420, y=15)
-        self.commandlog=""
+        self.guide=Label(self.window, width=39, height=6, anchor=NW, justify="left", background="white")
+        self.guide.place(x=1420, y=600)
+        self.guide.config(text= "save : save custom grid map to npy file\n"+
+                                "load : load your npy file into grip map\n"+
+                                "setbg : set background image and coordinates\n"+
+                                "help : show details of commands\n"+
+                                "clear : clean up the terminal log\n")
         self.window.bind("<Button-1>", self.click)
         Button(self.window, text="none", font=36, fg="black", background="white", height = 2, width = 6,
                command=self.BTnone).place(x=400, y=630)
@@ -95,8 +93,8 @@ class AStarPathFinding:
         self.boardZero()
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
-        self.canvas.create_image(700, 290, image=self.photo)
-        self.initialize_board()
+        # self.canvas.create_image(700, 290, image=self.photo)
+        # self.initialize_board()
         self.modenumber = 0
         self.startcount = 0
         self.goalcount = 0
@@ -273,6 +271,23 @@ class AStarPathFinding:
         self.initialize_board()
         self.loadcount()
 
+    def setbg(self):
+        imgpath = "Images/"+self.filename+".png"
+        img = Image.open(imgpath)
+        if img.size[0] > img.size[1]: # 가로로 김 
+            if img.size[0] > 1400:
+                img_resize=img.resize((1400,int(img.size[1]*(1400/img.size[0]))))
+            else :
+                img_resize=img
+        else : # 세로로 김
+            if img.size[1] > 600:
+                img_resize=img.resize((int(img.size[0]*(600/img.size[1])),600))
+            else :
+                img_reize=img
+        self.photo = ImageTk.PhotoImage(img_resize)
+        self.canvas.create_image(700, 300, image=self.photo)
+        self.initialize_board()
+        messagebox.showinfo("Notion", "setbg completed")
     def loadcount(self):
         startflag = np.any(self.board == 2)
         goalflag = np.any(self.board == 3)
@@ -365,6 +380,13 @@ class AStarPathFinding:
                                 self.goalcount -= 1
                         else:
                             self.deleteRec(logical_position)
+
+    def writeMessage(self, string):
+        self.cmdwindow.config(state="normal")
+        self.cmdwindow.insert(INSERT,string+"\n\n")
+        self.cmdwindow.config(state="disable")
+        self.cmdwindow.see(END)
+
     def commandfunc(self, event):
         command=str(self.command.get())
         self.command.delete(0,len(command))
@@ -378,10 +400,17 @@ class AStarPathFinding:
         elif commandList[0] =="load" :
             self.filename=commandList[1]
             self.fileload()
+        elif commandList[0] =="setbg":
+            self.filename=commandList[1]
+            self.setbg()
         elif commandList[0] =="clear":
             self.cmdwindow.config(state="normal")
             self.cmdwindow.delete(1.0,END)
             self.cmdwindow.config(state="disable")
+        elif commandList[0] =="help":
+            self.writeMessage("may i help you?")
+        else :
+            self.writeMessage("command not found...")
         self.cmdwindow.see(END)
 game_instance = AStarPathFinding()
 game_instance = mainloop()
