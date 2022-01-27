@@ -10,7 +10,7 @@ from pyparsing import White
 # Define useful parameters
 imagewidth = 1400
 width = 1700
-imageheight=602
+imageheight = 602
 height = 700
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
@@ -436,5 +436,7 @@ class AStarPathFinding:
         else :
             self.writeMessage("command not found...")
         self.cmdwindow.see(END)
+
+
 AStarPathFinding()
 mainloop()
