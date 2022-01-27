@@ -43,6 +43,7 @@ class AStarPathFinding:
         self.modenumber = 0
         self.startcount = 0
         self.goalcount = 0
+        self.boradOn=False
         self.command = Entry(self.window, width=35, borderwidth=3)
         self.command.place(x=1420, y=565)
         self.command.bind("<Return>",self.commandfunc)
@@ -54,6 +55,8 @@ class AStarPathFinding:
         self.cmdwindow.config(state="disabled")
         self.scrollbar.config(command=self.cmdwindow.yview)
         self.cmdwindow.pack()
+        self.imgframe=Frame()
+        self.imgframe.bind("<Button-1>", self.click)
         self.guide=Label(self.window, width=39, height=6, anchor=NW, justify="left", background="white")
         self.guide.place(x=1420, y=600)
         self.guide.config(text= "save : save custom grid map to npy file\n"+
@@ -61,7 +64,6 @@ class AStarPathFinding:
                                 "setbg : set background image and coordinates\n"+
                                 "help : show details of commands\n"+
                                 "clear : clean up the terminal log\n")
-        self.window.bind("<Button-1>", self.click)
         Button(self.window, text="none", font=36, fg="black", background="white", height = 2, width = 6,
                command=self.BTnone).place(x=400, y=630)
         Button(self.window, text="wall", font=36, fg="black", background="white", height = 2, width = 6,
@@ -83,8 +85,8 @@ class AStarPathFinding:
         self.board = np.zeros(shape=(verticalStepCount, horizontalStepCount))
         for i in range(verticalStepCount):
             for j in range(horizontalStepCount):
-                self.canvas.create_rectangle(
-                    self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length)
+                self.imgcanvas.create_rectangle(
+                    j*length, i*length, (j+1)*length, (i+1)*length)
 
     # fill board regard to matrix and create line
     def initialize_board(self):
@@ -92,24 +94,24 @@ class AStarPathFinding:
             for j in range(horizontalStepCount):
                 tagname = "rect"+self.convertRecNum(j)+self.convertRecNum(i)
                 if(self.board[i][j] == 0):  # none #fixed
-                    self.canvas.create_rectangle(
-                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length ,tag=tagname)
+                    self.imgcanvas.create_rectangle(
+                        j*length, i*length, (j+1)*length, (i+1)*length ,tag=tagname)
                 elif(self.board[i][j] == 1):  # wall #fixed
-                    self.canvas.create_rectangle(
-                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="white")
+                    self.imgcanvas.create_rectangle(
+                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="white")
                 elif(self.board[i][j] == 2):  # start #fixed
-                    self.canvas.create_rectangle(
-                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="green")
+                    self.imgcanvas.create_rectangle(
+                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="green")
                 elif(self.board[i][j] == 3):  # goal #fixed
-                    self.canvas.create_rectangle(
-                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="red")
+                    self.imgcanvas.create_rectangle(
+                        j*length, +i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="red")
 
     # reset board
     def reset(self):
         self.canvas.delete("all")
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
-        self.canvas.create_image(700, 301, anchor=CENTER,image=self.photo)
+        self.canvas.create_image(0,0, anchor=NW,image=self.photo)
         self.boardZero()
         self.modenumber = 0
         self.startcount = 0
@@ -281,13 +283,15 @@ class AStarPathFinding:
         self.board = np.load("GridMap/"+self.filename+".npy")
         messagebox.showinfo("Notion", "load completed")
         self.canvas.delete("all")
-        self.canvas.create_image(700, 301, anchor=CENTER, image=self.photo)
+        self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
         self.initialize_board()
         self.loadcount()
 
     def setbg(self):
+        if self.boradOn == True :
+            self.imgframe.destroy()
         self.canvas.delete("all")
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
@@ -306,9 +310,14 @@ class AStarPathFinding:
         self.right=700+img_resize.size[0]//2
         self.up=301-img_resize.size[1]//2
         self.down=301+img_resize.size[1]//2
-        self.canvas.create_image(700, 301, anchor=CENTER,image=self.photo)
+        self.imgframe=Frame(self.window, width=int(img_resize.size[0]), height=int(img_resize.size[1]),background="white")
+        self.imgframe.place(x=self.left, y=self.up)
+        self.imgcanvas = Canvas(self.imgframe, width=int(img_resize.size[0]), height=int(img_resize.size[1]), background="white")
+        self.imgcanvas.pack()
+        self.imgcanvas.create_image(0, 0, anchor=NW,image=self.photo)
         self.boardZero()
         messagebox.showinfo("Notion", "setbg completed")
+        self.boradOn=True
     def loadcount(self):
         startflag = np.any(self.board == 2)
         goalflag = np.any(self.board == 3)
@@ -372,35 +381,37 @@ class AStarPathFinding:
             return "00"+str(num)
 
     def click(self, event):
-        grid_position = [event.x, event.y]
-        logical_position = self.convert_grid_to_logical_position(grid_position)
-        # 버튼 눌렀을 때 사각형이 클릭되었다고 인식하지않기 위해
-        if logical_position[0] < horizontalStepCount and logical_position[1] <verticalStepCount :
-            if logical_position[0] > 4 or logical_position[1] > 3:
-                if not self.is_grid_occupied(logical_position):
-                    if self.modenumber == 2:
-                        if self.startcount == 0:
-                            self.drawRec(logical_position)
-                            self.startcount += 1
-                    elif self.modenumber == 3:
-                        if self.goalcount == 0:
-                            self.drawRec(logical_position)
-                            self.goalcount += 1
-                    else:
-                        self.drawRec(logical_position)
-                else:
-                    # fixed
-                    if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
+        print(self.boradOn)
+        if self.boradOn==True :
+            grid_position = [event.x, event.y]
+            logical_position = self.convert_grid_to_logical_position(grid_position)
+            # 버튼 눌렀을 때 사각형이 클릭되었다고 인식하지않기 위해
+            if logical_position[0] < horizontalStepCount and logical_position[1] <verticalStepCount :
+                if logical_position[0] > 4 or logical_position[1] > 3:
+                    if not self.is_grid_occupied(logical_position):
                         if self.modenumber == 2:
-                            if self.startcount == 1:
-                                self.deleteRec(logical_position)
-                                self.startcount -= 1
+                            if self.startcount == 0:
+                                self.drawRec(logical_position)
+                                self.startcount += 1
                         elif self.modenumber == 3:
-                            if self.goalcount == 1:
-                                self.deleteRec(logical_position)
-                                self.goalcount -= 1
+                            if self.goalcount == 0:
+                                self.drawRec(logical_position)
+                                self.goalcount += 1
                         else:
-                            self.deleteRec(logical_position)
+                            self.drawRec(logical_position)
+                    else:
+                        # fixed
+                        if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
+                            if self.modenumber == 2:
+                                if self.startcount == 1:
+                                    self.deleteRec(logical_position)
+                                    self.startcount -= 1
+                            elif self.modenumber == 3:
+                                if self.goalcount == 1:
+                                    self.deleteRec(logical_position)
+                                    self.goalcount -= 1
+                            else:
+                                self.deleteRec(logical_position)
 
     def writeMessage(self, string):
         self.cmdwindow.config(state="normal")
