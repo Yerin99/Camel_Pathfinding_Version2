@@ -10,8 +10,8 @@ from pyparsing import White
 # Define useful parameters
 imagewidth = 1400
 width = 1700
-imageheight=602;
-height = 700;
+imageheight = 602
+height = 700
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
 length = 14
@@ -444,5 +444,7 @@ class AStarPathFinding:
         else :
             self.writeMessage("command not found...")
         self.cmdwindow.see(END)
-game_instance = AStarPathFinding()
-game_instance = mainloop()
+
+
+AStarPathFinding()
+mainloop()
