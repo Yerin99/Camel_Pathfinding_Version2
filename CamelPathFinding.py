@@ -10,11 +10,11 @@ from pyparsing import White
 # Define useful parameters
 imagewidth = 1400
 width = 1700
-imageheight=600;
+imageheight=602;
 height = 700;
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
-length = imagewidth//horizontalStepCount
+length = 14
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
 
 
@@ -23,14 +23,26 @@ class AStarPathFinding:
     # Initialization Functions:
     # ------------------------------------------------------------------
     def __init__(self):
+        self.left=0
+        self.right=1400
+        self.up=0
+        self.down=602
         self.window = Tk()
         self.window.resizable(False, False)
         self.window.title("AStarPathFinding")
-        self.pnu= ImageTk.PhotoImage(Image.open("Logo/pnu_logo.png"))
-        self.camel= ImageTk.PhotoImage(Image.open("Logo/camel_logo.png"))
+        self.pnulogo=Image.open("Logo/pnu_logo.png")
+        self.pnureize=self.pnulogo.resize((338,85))
+        self.pnu= ImageTk.PhotoImage(self.pnureize)
+        self.camellogo=Image.open("Logo/camel_logo.png")
+        self.camelresize=self.camellogo.resize((285,90))
+        self.camel= ImageTk.PhotoImage(self.camelresize)
         self.canvas = Canvas(self.window, width=width, height=height, background="white")
         self.canvas.pack()
-        self.reset()
+        self.canvas.create_image(180, 648, image=self.pnu)
+        self.canvas.create_image(1240, 650, image=self.camel)
+        self.modenumber = 0
+        self.startcount = 0
+        self.goalcount = 0
         self.command = Entry(self.window, width=35, borderwidth=3)
         self.command.place(x=1420, y=565)
         self.command.bind("<Return>",self.commandfunc)
@@ -62,12 +74,17 @@ class AStarPathFinding:
                command=self.reset).place(x=880, y=630)
         Button(self.window, text="astar", font=36, fg="black", background="white", height = 2, width = 6,
                command=self.BTastar).place(x=1000, y=630)
-
     
     # initialize the board matrix to 0
     def boardZero(self):
+        verticalStepCount=(self.down-self.up)//14
+        horizontalStepCount=(self.right-self.left)//14
         self.board = []
         self.board = np.zeros(shape=(verticalStepCount, horizontalStepCount))
+        for i in range(verticalStepCount):
+            for j in range(horizontalStepCount):
+                self.canvas.create_rectangle(
+                    self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length)
 
     # fill board regard to matrix and create line
     def initialize_board(self):
@@ -76,24 +93,24 @@ class AStarPathFinding:
                 tagname = "rect"+self.convertRecNum(j)+self.convertRecNum(i)
                 if(self.board[i][j] == 0):  # none #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length ,tag=tagname)
+                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length ,tag=tagname)
                 elif(self.board[i][j] == 1):  # wall #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="white" ,outline="black")
+                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="white")
                 elif(self.board[i][j] == 2):  # start #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="green")
+                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="green")
                 elif(self.board[i][j] == 3):  # goal #fixed
                     self.canvas.create_rectangle(
-                        j*length, i*length, (j+1)*length, (i+1)*length, tag=tagname, fill="red")
+                        self.left+j*length, self.up+i*length, self.left+(j+1)*length, self.up+(i+1)*length, tag=tagname, fill="red")
 
     # reset board
     def reset(self):
-        self.boardZero()
+        self.canvas.delete("all")
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
-        # self.canvas.create_image(700, 290, image=self.photo)
-        # self.initialize_board()
+        self.canvas.create_image(700, 301, anchor=CENTER,image=self.photo)
+        self.boardZero()
         self.modenumber = 0
         self.startcount = 0
         self.goalcount = 0
@@ -109,7 +126,7 @@ class AStarPathFinding:
 
     def BTwall(self):
         self.modenumber = 1
-        self.initialize_board()
+        # self.initialize_board()
 
     def BTstart(self):
         self.modenumber = 2
@@ -264,28 +281,33 @@ class AStarPathFinding:
         self.board = np.load("GridMap/"+self.filename+".npy")
         messagebox.showinfo("Notion", "load completed")
         self.canvas.delete("all")
-        self.canvas.create_image(700, 290, image=self.photo)
+        self.canvas.create_image(700, 301, anchor=CENTER, image=self.photo)
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
         self.initialize_board()
         self.loadcount()
 
     def setbg(self):
+        self.canvas.delete("all")
+        self.canvas.create_image(180, 648, image=self.pnu)
+        self.canvas.create_image(1240, 650, image=self.camel)
         imgpath = "Images/"+self.filename+".png"
         img = Image.open(imgpath)
         if img.size[0] > img.size[1]: # 가로로 김 
-            if img.size[0] > 1400:
-                img_resize=img.resize((1400,int(img.size[1]*(1400/img.size[0]))))
-            else :
-                img_resize=img
+            img_resize=img.resize((1400,int(img.size[1]*(1400/img.size[0]))))
+            if img_resize.size[1]%14 !=0 :
+                img_resize=img_resize.resize((1400,int(img_resize.size[1]+(14-img_resize.size[1]%14))))
         else : # 세로로 김
-            if img.size[1] > 600:
-                img_resize=img.resize((int(img.size[0]*(600/img.size[1])),600))
-            else :
-                img_resize=img
+            img_resize=img.resize((int(img.size[0]*(602/img.size[1])),602))
+            if img_resize.size[0]%14 !=0 :
+                img_resize=img_resize.resize((int(img_resize.size[0]+(14-img_resize.size[0]%14),602)))
         self.photo = ImageTk.PhotoImage(img_resize)
-        self.canvas.create_image(700, 300, image=self.photo)
-        self.initialize_board()
+        self.left=700-img_resize.size[0]//2
+        self.right=700+img_resize.size[0]//2
+        self.up=301-img_resize.size[1]//2
+        self.down=301+img_resize.size[1]//2
+        self.canvas.create_image(700, 301, anchor=CENTER,image=self.photo)
+        self.boardZero()
         messagebox.showinfo("Notion", "setbg completed")
     def loadcount(self):
         startflag = np.any(self.board == 2)
