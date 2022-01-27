@@ -10,8 +10,8 @@ from pyparsing import White
 # Define useful parameters
 imagewidth = 1400
 width = 1700
-imageheight=602;
-height = 700;
+imageheight=602
+height = 700
 horizontalStepCount = 100
 verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
 length = 14
@@ -55,8 +55,6 @@ class AStarPathFinding:
         self.cmdwindow.config(state="disabled")
         self.scrollbar.config(command=self.cmdwindow.yview)
         self.cmdwindow.pack()
-        self.imgframe=Frame()
-        self.imgframe.bind("<Button-1>", self.click)
         self.guide=Label(self.window, width=39, height=6, anchor=NW, justify="left", background="white")
         self.guide.place(x=1420, y=600)
         self.guide.config(text= "save : save custom grid map to npy file\n"+
@@ -108,10 +106,8 @@ class AStarPathFinding:
 
     # reset board
     def reset(self):
-        self.canvas.delete("all")
-        self.canvas.create_image(180, 648, image=self.pnu)
-        self.canvas.create_image(1240, 650, image=self.camel)
-        self.canvas.create_image(0,0, anchor=NW,image=self.photo)
+        self.imgcanvas.delete("all")
+        self.imgcanvas.create_image(0,0, anchor=NW,image=self.photo)
         self.boardZero()
         self.modenumber = 0
         self.startcount = 0
@@ -182,7 +178,7 @@ class AStarPathFinding:
                 openList.pop(currentIdx)
                 closedList.append(currentNode)
                 def drawnode(currentNode):
-                    self.canvas.create_rectangle(
+                    self.imgcanvas.create_rectangle(
                         (currentNode.position[1])*length, (currentNode.position[0])*length, (currentNode.position[1]+1)*length, (currentNode.position[0]+1)*length, fill="lawn green")
                     self.window.update()  
                                        
@@ -192,13 +188,13 @@ class AStarPathFinding:
                 # current의 부모로 이동
                 def findpath(cell):
                         if cells.index(cell) == 0:
-                            self.canvas.create_rectangle(
+                            self.imgcanvas.create_rectangle(
                                 (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="green")
                         elif cells.index(cell) == (len(cells) - 1):
-                            self.canvas.create_rectangle(
+                            self.imgcanvas.create_rectangle(
                                 (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="red")
                         else:
-                            self.canvas.create_rectangle(
+                            self.imgcanvas.create_rectangle(
                                 (cell[1])*length, (cell[0])*length, (cell[1]+1)*length, (cell[0]+1)*length, fill="yellow")
                         self.window.update()
                 if currentNode.position == endNode.position:
@@ -259,7 +255,7 @@ class AStarPathFinding:
                         continue
                     
                     def drawlist(child):
-                        self.canvas.create_rectangle(
+                        self.imgcanvas.create_rectangle(
                         (child.position[1])*length, (child.position[0])*length, (child.position[1]+1)*length, (child.position[0]+1)*length, fill="dodger blue")
                         self.window.update()
                     self.window.update()
@@ -282,10 +278,8 @@ class AStarPathFinding:
     def fileload(self):
         self.board = np.load("GridMap/"+self.filename+".npy")
         messagebox.showinfo("Notion", "load completed")
-        self.canvas.delete("all")
-        self.canvas.create_image(0, 0, anchor=NW, image=self.photo)
-        self.canvas.create_image(180, 648, image=self.pnu)
-        self.canvas.create_image(1240, 650, image=self.camel)
+        self.imgcanvas.delete("all")
+        self.imgcanvas.create_image(0, 0, anchor=NW, image=self.photo)
         self.initialize_board()
         self.loadcount()
 
@@ -314,6 +308,7 @@ class AStarPathFinding:
         self.imgframe.place(x=self.left, y=self.up)
         self.imgcanvas = Canvas(self.imgframe, width=int(img_resize.size[0]), height=int(img_resize.size[1]), background="white")
         self.imgcanvas.pack()
+        self.imgcanvas.bind("<Button-1>", self.click)
         self.imgcanvas.create_image(0, 0, anchor=NW,image=self.photo)
         self.boardZero()
         messagebox.showinfo("Notion", "setbg completed")
@@ -340,7 +335,7 @@ class AStarPathFinding:
         y = int(logical_position[1])
         tagname = "rect"+self.convertRecNum(x)+self.convertRecNum(y)
         if not self.modenumber == 0:
-            self.canvas.create_rectangle(
+            self.imgcanvas.create_rectangle(
                 x*length, y*length, (x+1)*length, (y+1)*length, tag=tagname, fill=Color[self.modenumber])
             self.board[logical_position[1]][logical_position[0]
                                             ] = self.modenumber  # fixed
@@ -350,7 +345,7 @@ class AStarPathFinding:
             x = int(logical_position[0])
             y = int(logical_position[1])
             tagname = "rect"+self.convertRecNum(x)+self.convertRecNum(y)
-            self.canvas.delete(tagname)
+            self.imgcanvas.delete(tagname)
             self.board[logical_position[1]][logical_position[0]] = 0  # fixed
 
     # ------------------------------------------------------------------
@@ -381,37 +376,34 @@ class AStarPathFinding:
             return "00"+str(num)
 
     def click(self, event):
-        print(self.boradOn)
         if self.boradOn==True :
             grid_position = [event.x, event.y]
             logical_position = self.convert_grid_to_logical_position(grid_position)
             # 버튼 눌렀을 때 사각형이 클릭되었다고 인식하지않기 위해
-            if logical_position[0] < horizontalStepCount and logical_position[1] <verticalStepCount :
-                if logical_position[0] > 4 or logical_position[1] > 3:
-                    if not self.is_grid_occupied(logical_position):
-                        if self.modenumber == 2:
-                            if self.startcount == 0:
-                                self.drawRec(logical_position)
-                                self.startcount += 1
-                        elif self.modenumber == 3:
-                            if self.goalcount == 0:
-                                self.drawRec(logical_position)
-                                self.goalcount += 1
-                        else:
-                            self.drawRec(logical_position)
+            if not self.is_grid_occupied(logical_position):
+                if self.modenumber == 2:
+                    if self.startcount == 0:
+                        self.drawRec(logical_position)
+                        self.startcount += 1
+                elif self.modenumber == 3:
+                    if self.goalcount == 0:
+                        self.drawRec(logical_position)
+                        self.goalcount += 1
+                else:
+                    self.drawRec(logical_position)
+            else:
+                # fixed
+                if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
+                    if self.modenumber == 2:
+                        if self.startcount == 1:
+                            self.deleteRec(logical_position)
+                            self.startcount -= 1
+                    elif self.modenumber == 3:
+                        if self.goalcount == 1:
+                            self.deleteRec(logical_position)
+                            self.goalcount -= 1
                     else:
-                        # fixed
-                        if self.modenumber == self.board[logical_position[1]][logical_position[0]]:
-                            if self.modenumber == 2:
-                                if self.startcount == 1:
-                                    self.deleteRec(logical_position)
-                                    self.startcount -= 1
-                            elif self.modenumber == 3:
-                                if self.goalcount == 1:
-                                    self.deleteRec(logical_position)
-                                    self.goalcount -= 1
-                            else:
-                                self.deleteRec(logical_position)
+                        self.deleteRec(logical_position)
 
     def writeMessage(self, string):
         self.cmdwindow.config(state="normal")
@@ -444,5 +436,5 @@ class AStarPathFinding:
         else :
             self.writeMessage("command not found...")
         self.cmdwindow.see(END)
-game_instance = AStarPathFinding()
-game_instance = mainloop()
+AStarPathFinding()
+mainloop()
