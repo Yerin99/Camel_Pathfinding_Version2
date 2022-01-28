@@ -458,7 +458,12 @@ class AStarPathFinding:
             self.cmdwindow.delete(1.0,END)
             self.cmdwindow.config(state="disable")
         elif commandList[0] =="help":
-            self.writeMessage("may i help you?")
+            self.writeMessage("{fileName}은 확장자를 제외한 당신이 실제로 사용할 파일의 이름을 뜻합니다.")
+            self.writeMessage("- save + {fileName}: 벽, 시작점, 도착점의 정보를 {fileName}.npy 확장자로 저장한다.")
+            self.writeMessage("- load + {fileName}: save를 통해 저장됐었던 {fileName}.npy 파일을 불러와 벽, 시작점, 도착점을 보여준다.")
+            self.writeMessage("- setbg + {fileName}: {fileName}.png가 background 사진으로 깔리고, 만약 {fileName}.txt가 있다면 불러와 좌표를 설정한다.")
+            self.writeMessage("- help: command들에 대한 자세한 설명을 볼 수 있다.")
+            self.writeMessage("- clear: 현재 떠있는 터미널 로그를 전부 삭제한다.")
         else :
             self.writeMessage("command not found...")
         self.cmdwindow.see(END)
