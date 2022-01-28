@@ -393,17 +393,21 @@ class AStarPathFinding:
             return "0"+str(num)
         else:
             return "00"+str(num)
+
     def getcoordinates(self, x, y):
         eachX=(float(self.mapNE[0])-float(self.mapNW[0]))/horizontalStepCount
         eachY=(float(self.mapSW[1])-float(self.mapNW[1]))/verticalStepCount
         self.writeMessage(str(float(self.mapNW[0])+eachX*x)+", "+str(float(self.mapNW[1])+eachY*y))
+    
     def click(self, event):
         if self.boradOn==True :
             grid_position = [event.x, event.y]
             logical_position = self.convert_grid_to_logical_position(grid_position)
             # 버튼 눌렀을 때 사각형이 클릭되었다고 인식하지않기 위해
             if not self.is_grid_occupied(logical_position):
-                if self.modenumber == 2:
+                if self.modenumber == 0:
+                    self.getcoordinates(logical_position[0],logical_position[1])
+                elif self.modenumber == 2:
                     if self.startcount == 0:
                         self.drawRec(logical_position)
                         self.startcount += 1
@@ -426,7 +430,7 @@ class AStarPathFinding:
                             self.goalcount -= 1
                     else:
                         self.deleteRec(logical_position)
-            self.getcoordinates(logical_position[0],logical_position[1])
+    
     def writeMessage(self, string):
         self.cmdwindow.config(state="normal")
         self.cmdwindow.insert(INSERT,string+"\n\n")
