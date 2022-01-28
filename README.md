@@ -27,7 +27,6 @@ Each button functions as follows.
 Each command functions as follows. 
 > {fileName}은 확장자를 제외한 당신이 실제로 사용할 파일의 이름을 뜻합니다. 
 
-{fileName}은 확장자를 제외한 당신이 실제로 사용할 파일의 이름을 뜻합니다.
 
 * save + {fileName}: 벽, 시작점, 도착점의 정보를 {fileName}.npy 확장자로 저장한다.
 * load + {fileName}: save를 통해 저장됐었던 {fileName}.npy 파일을 불러와 벽, 시작점, 도착점을 보여준다.
