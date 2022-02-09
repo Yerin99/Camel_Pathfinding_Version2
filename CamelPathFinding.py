@@ -309,7 +309,6 @@ class AStarPathFinding:
             self.mapSE=coordfile.readline().split(",")
         except IOError :
             self.writeMessage("There is no coordinate file")
-            return
         if img.size[0] > img.size[1]: # 가로로 김 
             img_resize=img.resize((1400,int(img.size[1]*(1400/img.size[0]))))
             if img_resize.size[1]%14 !=0 :
