@@ -63,7 +63,7 @@ class AStarPathFinding:
                                 "setbg : set background image and coordinates\n"+
                                 "help : show details of commands\n"+
                                 "clear : clean up the terminal log\n")
-        Button(self.window, text="좌표", font=36, fg="black", background="white", height = 2, width = 6,
+        Button(self.window, text="coord", font=36, fg="black", background="white", height = 2, width = 6,
                command=self.BTnone).place(x=400, y=630)
         Button(self.window, text="wall", font=36, fg="black", background="white", height = 2, width = 6,
                command=self.BTwall).place(x=520, y=630)
