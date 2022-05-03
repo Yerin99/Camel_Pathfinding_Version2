@@ -8,18 +8,20 @@ image_width = 1400
 width = 1700
 image_height = 602
 height = 700
-horizontalStepCount = 100
-verticalStepCount = image_height // (image_width // horizontalStepCount)
+horizontal_step_count = 100
+vertical_step_count = image_height // (image_width // horizontal_step_count)
 length = 14
 
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린 목록 닫힌 목록 길 등은 나중에 추가
 
 
-class AStarPathFinding:
+class PythonPathFinding:
     # ------------------------------------------------------------------
     # Initialization Functions:
     # ------------------------------------------------------------------
     def __init__(self):
+        self.img_canvas = None
+        self.photo = None
         self.img_frame = None
         self.left = 0
         self.right = 1400
@@ -88,8 +90,8 @@ class AStarPathFinding:
 
     # fill board regard to matrix and create line
     def initialize_board(self):
-        for i in range(verticalStepCount):
-            for j in range(horizontalStepCount):
+        for i in range(vertical_step_count):
+            for j in range(horizontal_step_count):
                 tagname = "rect" + self.convert_rectangle_num(j) + self.convert_rectangle_num(i)
                 target_grid = self.board[i][j]
                 if target_grid == 0:  # none #fixed
@@ -288,7 +290,7 @@ class AStarPathFinding:
             astar(self.board, start, end)
 
     def save_file(self):
-        np.save("GridMap/" + self.file_name + ".npy", self.board, 'x')
+        np.save("GridMap/" + self.file_name + ".npy", self.board)
         messagebox.showinfo("Notion", "save completed")
 
     def load_file(self):
@@ -326,7 +328,7 @@ class AStarPathFinding:
         else:  # 세로로 김
             img_resize = img.resize((int(img.size[0] * (602 / img.size[1])), 602))
             if img_resize.size[0] % 14 != 0:
-                img_resize = img_resize.resize((int(img_resize.size[0] + (14 - img_resize.size[0] % 14), 602)))
+                img_resize = img_resize.resize((int(img_resize.size[0] + (14 - img_resize.size[0] % 14)), 602))
         self.photo = ImageTk.PhotoImage(img_resize)
         self.left = 700 - img_resize.size[0] // 2
         self.right = 700 + img_resize.size[0] // 2
@@ -386,11 +388,11 @@ class AStarPathFinding:
     # ------------------------------------------------------------------
     def convert_logical_to_grid_position(self, logical_position):
         logical_position = np.array(logical_position, dtype=int)
-        return (image_width / horizontalStepCount) * logical_position + image_width / (horizontalStepCount * 2)
+        return (image_width / horizontal_step_count) * logical_position + image_width / (horizontal_step_count * 2)
 
     def convert_grid_to_logical_position(self, grid_position):
         grid_position = np.array(grid_position)
-        return np.array(grid_position // (image_width / horizontalStepCount), dtype=int)
+        return np.array(grid_position // (image_width / horizontal_step_count), dtype=int)
 
     def is_grid_occupied(self, logical_position):
         if self.board[logical_position[1]][logical_position[0]] == 0:  # fixed
@@ -407,9 +409,9 @@ class AStarPathFinding:
         else:
             return "00" + str(num)
 
-    def getcoordinates(self, x, y):
-        each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / horizontalStepCount
-        each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / verticalStepCount
+    def get_coordinates(self, x, y):
+        each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / horizontal_step_count
+        each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / vertical_step_count
         self.write_message(str(float(self.mapNW[0]) + each_x * x) + ", " + str(float(self.mapNW[1]) + each_y * y))
 
     def click(self, event):
@@ -419,7 +421,7 @@ class AStarPathFinding:
             # 버튼 눌렀을 때 사각형이 클릭 되었다고 인식 하지 않기 위해
             if not self.is_grid_occupied(logical_position):
                 if self.mode_number == 0:
-                    self.getcoordinates(logical_position[0], logical_position[1])
+                    self.get_coordinates(logical_position[0], logical_position[1])
                 elif self.mode_number == 2:
                     if self.start_count == 0:
                         self.draw_rectengle(logical_position)
@@ -447,7 +449,7 @@ class AStarPathFinding:
     def write_message(self, string):
         self.cmd_window.config(state="normal")
         self.cmd_window.insert(INSERT, string + "\n\n")
-        self.cmd_window.config(state="disable")
+        self.cmd_window.config(state="disabled")
         self.cmd_window.see(END)
 
     def do_command(self, event):
@@ -455,7 +457,7 @@ class AStarPathFinding:
         self.command.delete(0, len(command))
         self.cmd_window.config(state="normal")
         self.cmd_window.insert(INSERT, ">> " + command + "\n")
-        self.cmd_window.config(state="disable")
+        self.cmd_window.config(state="disabled")
         command_list = command.split(" ")
         if command_list[0] == "save":
             self.file_name = command_list[1]
@@ -469,7 +471,7 @@ class AStarPathFinding:
         elif command_list[0] == "clear":
             self.cmd_window.config(state="normal")
             self.cmd_window.delete(1.0, END)
-            self.cmd_window.config(state="disable")
+            self.cmd_window.config(state="disabled")
         elif command_list[0] == "help":
             self.write_message("{fileName}은 확장자를 제외한 당신이 실제로 사용할 파일의 이름을 뜻합니다.")
             self.write_message("- save + {fileName}: 벽, 시작점, 도착점의 정보를 {fileName}.npy 확장자로 저장한다.")
@@ -483,5 +485,5 @@ class AStarPathFinding:
         self.cmd_window.see(END)
 
 
-AStarPathFinding()
+PythonPathFinding()
 mainloop()
