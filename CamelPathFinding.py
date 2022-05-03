@@ -1,12 +1,9 @@
 from tkinter import *
 from tkinter import messagebox
-from tkinter import scrolledtext
-from PIL import Image, ImageDraw, ImageTk
-from matplotlib.pyplot import grid, text
+from PIL import Image, ImageTk
 import numpy as np
-import time
 
-from pyparsing import White
+
 # Define useful parameters
 imagewidth = 1400
 width = 1700
