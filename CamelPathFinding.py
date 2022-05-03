@@ -5,13 +5,14 @@ import numpy as np
 
 
 # Define useful parameters
-imagewidth = 1400
+image_width = 1400
 width = 1700
-imageheight = 602
+image_height = 602
 height = 700
 horizontalStepCount = 100
-verticalStepCount = imageheight//(imagewidth//horizontalStepCount)
+verticalStepCount = image_height // (image_width // horizontalStepCount)
 length = 14
+
 
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린목록 닫힌목록 길 등은 나중에 추가
 
@@ -369,11 +370,11 @@ class AStarPathFinding:
     # ------------------------------------------------------------------
     def convert_logical_to_grid_position(self, logical_position):
         logical_position = np.array(logical_position, dtype=int)
-        return (imagewidth / horizontalStepCount) * logical_position + imagewidth / (horizontalStepCount*2)
+        return (image_width / horizontalStepCount) * logical_position + image_width / (horizontalStepCount * 2)
 
     def convert_grid_to_logical_position(self, grid_position):
         grid_position = np.array(grid_position)
-        return np.array(grid_position // (imagewidth / horizontalStepCount), dtype=int)
+        return np.array(grid_position // (image_width / horizontalStepCount), dtype=int)
 
     def is_grid_occupied(self, logical_position):
         if self.board[logical_position[1]][logical_position[0]] == 0:  # fixed
