@@ -4,13 +4,11 @@ from PIL import Image, ImageTk
 import numpy as np
 
 # Define useful parameters
-image_width = 1400
-width = 1700
-image_height = 602
-height = 700
-horizontal_step_count = 100
-vertical_step_count = image_height // (image_width // horizontal_step_count)
-length = 14
+IMAGE_WIDTH = 1400
+WIDTH = 1700
+IMAGE_HEIGHT = 602
+HEIGHT = 700
+LENGTH = 14
 
 Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린 목록 닫힌 목록 길 등은 나중에 추가
 
@@ -23,6 +21,8 @@ class PythonPathFinding:
         self.img_canvas = None
         self.photo = None
         self.img_frame = None
+        self.horizontal_step_count = 100
+        self.vertical_step_count = IMAGE_HEIGHT // (IMAGE_WIDTH // self.horizontal_step_count)
         self.left = 0
         self.right = 1400
         self.up = 0
@@ -36,7 +36,7 @@ class PythonPathFinding:
         self.camel_logo = Image.open("Logo/camel_logo.png")
         self.camel_resize = self.camel_logo.resize((285, 90))
         self.camel = ImageTk.PhotoImage(self.camel_resize)
-        self.canvas = Canvas(self.window, width=width, height=height, background="white")
+        self.canvas = Canvas(self.window, width=WIDTH, height=HEIGHT, background="white")
         self.canvas.pack()
         self.canvas.create_image(180, 648, image=self.pnu)
         self.canvas.create_image(1240, 650, image=self.camel)
@@ -86,26 +86,26 @@ class PythonPathFinding:
         for i in range(vertical_step_count):
             for j in range(horizontal_step_count):
                 self.img_canvas.create_rectangle(
-                    j * length, i * length, (j + 1) * length, (i + 1) * length)
+                    j * LENGTH, i * LENGTH, (j + 1) * LENGTH, (i + 1) * LENGTH)
 
     # fill board regard to matrix and create line
     def initialize_board(self):
-        for i in range(vertical_step_count):
-            for j in range(horizontal_step_count):
-                tagname = "rect" + self.convert_rectangle_num(j) + self.convert_rectangle_num(i)
+        for i in range(self.vertical_step_count):
+            for j in range(self.horizontal_step_count):
+                tag_name = "rect" + self.convert_rectangle_num(j) + self.convert_rectangle_num(i)
                 target_grid = self.board[i][j]
                 if target_grid == 0:  # none #fixed
                     self.img_canvas.create_rectangle(
-                        j * length, i * length, (j + 1) * length, (i + 1) * length, tag=tagname)
+                        j * LENGTH, i * LENGTH, (j + 1) * LENGTH, (i + 1) * LENGTH, tag=tag_name)
                 elif target_grid == 1:  # wall #fixed
                     self.img_canvas.create_rectangle(
-                        j * length, i * length, (j + 1) * length, (i + 1) * length, tag=tagname, fill="white")
+                        j * LENGTH, i * LENGTH, (j + 1) * LENGTH, (i + 1) * LENGTH, tag=tag_name, fill="white")
                 elif target_grid == 2:  # start #fixed
                     self.img_canvas.create_rectangle(
-                        j * length, i * length, (j + 1) * length, (i + 1) * length, tag=tagname, fill="green")
+                        j * LENGTH, i * LENGTH, (j + 1) * LENGTH, (i + 1) * LENGTH, tag=tag_name, fill="green")
                 elif target_grid == 3:  # goal #fixed
                     self.img_canvas.create_rectangle(
-                        j * length, +i * length, (j + 1) * length, (i + 1) * length, tag=tagname, fill="red")
+                        j * LENGTH, +i * LENGTH, (j + 1) * LENGTH, (i + 1) * LENGTH, tag=tag_name, fill="red")
 
     # reset board
     def reset(self):
@@ -189,8 +189,8 @@ class PythonPathFinding:
 
                     def draw_node(cur_node):
                         self.img_canvas.create_rectangle(
-                            (cur_node.position[1]) * length, (cur_node.position[0]) * length,
-                            (cur_node.position[1] + 1) * length, (cur_node.position[0] + 1) * length,
+                            (cur_node.position[1]) * LENGTH, (cur_node.position[0]) * LENGTH,
+                            (cur_node.position[1] + 1) * LENGTH, (cur_node.position[0] + 1) * LENGTH,
                             fill="lawn green")
                         self.window.update()
 
@@ -203,15 +203,15 @@ class PythonPathFinding:
                     def find_path(cell):
                         if cells.index(cell) == 0:
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * length, (cell[0]) * length, (cell[1] + 1) * length, (cell[0] + 1) * length,
+                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
                                 fill="green")
                         elif cells.index(cell) == (len(cells) - 1):
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * length, (cell[0]) * length, (cell[1] + 1) * length, (cell[0] + 1) * length,
+                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
                                 fill="red")
                         else:
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * length, (cell[0]) * length, (cell[1] + 1) * length, (cell[0] + 1) * length,
+                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
                                 fill="yellow")
                         self.window.update()
 
@@ -274,8 +274,8 @@ class PythonPathFinding:
 
                         def draw_list(child):
                             self.img_canvas.create_rectangle(
-                                (child.position[1]) * length, (child.position[0]) * length,
-                                (child.position[1] + 1) * length, (child.position[0] + 1) * length, fill="dodger blue")
+                                (child.position[1]) * LENGTH, (child.position[0]) * LENGTH,
+                                (child.position[1] + 1) * LENGTH, (child.position[0] + 1) * LENGTH, fill="dodger blue")
                             self.window.update()
 
                         self.window.update()
@@ -363,16 +363,15 @@ class PythonPathFinding:
     # The modules required to draw required game based object on canvas
     # ------------------------------------------------------------------
 
-    def draw_rectengle(self, logical_position):
+    def draw_rectangle(self, logical_position):
         logical_position = np.array(logical_position)
         x = int(logical_position[0])
         y = int(logical_position[1])
         tag_name = "rect" + self.convert_rectangle_num(x) + self.convert_rectangle_num(y)
         if not self.mode_number == 0:
             self.img_canvas.create_rectangle(
-                x * length, y * length, (x + 1) * length, (y + 1) * length, tag=tag_name, fill=Color[self.mode_number])
-            self.board[logical_position[1]][logical_position[0]
-            ] = self.mode_number  # fixed
+                x * LENGTH, y * LENGTH, (x + 1) * LENGTH, (y + 1) * LENGTH, tag=tag_name, fill=Color[self.mode_number])
+            self.board[logical_position[1]][logical_position[0]] = self.mode_number  # fixed
 
     def delete_rectangle(self, logical_position):
         if not self.mode_number == 0:
@@ -388,11 +387,11 @@ class PythonPathFinding:
     # ------------------------------------------------------------------
     def convert_logical_to_grid_position(self, logical_position):
         logical_position = np.array(logical_position, dtype=int)
-        return (image_width / horizontal_step_count) * logical_position + image_width / (horizontal_step_count * 2)
+        return (IMAGE_WIDTH / self.horizontal_step_count) * logical_position + IMAGE_WIDTH / (self.horizontal_step_count * 2)
 
     def convert_grid_to_logical_position(self, grid_position):
         grid_position = np.array(grid_position)
-        return np.array(grid_position // (image_width / horizontal_step_count), dtype=int)
+        return np.array(grid_position // (IMAGE_WIDTH / self.horizontal_step_count), dtype=int)
 
     def is_grid_occupied(self, logical_position):
         if self.board[logical_position[1]][logical_position[0]] == 0:  # fixed
@@ -410,8 +409,8 @@ class PythonPathFinding:
             return "00" + str(num)
 
     def get_coordinates(self, x, y):
-        each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / horizontal_step_count
-        each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / vertical_step_count
+        each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
+        each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
         self.write_message(str(float(self.mapNW[0]) + each_x * x) + ", " + str(float(self.mapNW[1]) + each_y * y))
 
     def click(self, event):
@@ -424,14 +423,14 @@ class PythonPathFinding:
                     self.get_coordinates(logical_position[0], logical_position[1])
                 elif self.mode_number == 2:
                     if self.start_count == 0:
-                        self.draw_rectengle(logical_position)
+                        self.draw_rectangle(logical_position)
                         self.start_count += 1
                 elif self.mode_number == 3:
                     if self.goal_count == 0:
-                        self.draw_rectengle(logical_position)
+                        self.draw_rectangle(logical_position)
                         self.goal_count += 1
                 else:
-                    self.draw_rectengle(logical_position)
+                    self.draw_rectangle(logical_position)
             else:
                 # fixed
                 if self.mode_number == self.board[logical_position[1]][logical_position[0]]:
