@@ -10,7 +10,7 @@ IMAGE_HEIGHT = 602
 HEIGHT = 700
 LENGTH = 14
 
-Color = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린 목록 닫힌 목록 길 등은 나중에 추가
+COLORS = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린 목록 닫힌 목록 길 등은 나중에 추가
 
 
 class PythonPathFinding:
@@ -18,6 +18,12 @@ class PythonPathFinding:
     # Initialization Functions:
     # ------------------------------------------------------------------
     def __init__(self):
+        self.mapSE = None
+        self.mapSW = None
+        self.mapNE = None
+        self.mapNW = None
+        self.file_name = None
+        self.board = None
         self.img_canvas = None
         self.photo = None
         self.img_frame = None
@@ -200,18 +206,18 @@ class PythonPathFinding:
                     # 현재 노드가 목적지면 current.position 추가 하고
                     # current의 부모로 이동
 
-                    def find_path(cell):
-                        if cells.index(cell) == 0:
+                    def find_path(_cell):
+                        if cells.index(_cell) == 0:
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
+                                (_cell[1]) * LENGTH, (_cell[0]) * LENGTH, (_cell[1] + 1) * LENGTH, (_cell[0] + 1) * LENGTH,
                                 fill="green")
-                        elif cells.index(cell) == (len(cells) - 1):
+                        elif cells.index(_cell) == (len(cells) - 1):
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
+                                (_cell[1]) * LENGTH, (_cell[0]) * LENGTH, (_cell[1] + 1) * LENGTH, (_cell[0] + 1) * LENGTH,
                                 fill="red")
                         else:
                             self.img_canvas.create_rectangle(
-                                (cell[1]) * LENGTH, (cell[0]) * LENGTH, (cell[1] + 1) * LENGTH, (cell[0] + 1) * LENGTH,
+                                (_cell[1]) * LENGTH, (_cell[0]) * LENGTH, (_cell[1] + 1) * LENGTH, (_cell[0] + 1) * LENGTH,
                                 fill="yellow")
                         self.window.update()
 
@@ -272,10 +278,10 @@ class PythonPathFinding:
                                 if child == openNode and child.g > openNode.g]) > 0:
                             continue
 
-                        def draw_list(child):
+                        def draw_list(_child):
                             self.img_canvas.create_rectangle(
-                                (child.position[1]) * LENGTH, (child.position[0]) * LENGTH,
-                                (child.position[1] + 1) * LENGTH, (child.position[0] + 1) * LENGTH, fill="dodger blue")
+                                (_child.position[1]) * LENGTH, (_child.position[0]) * LENGTH,
+                                (_child.position[1] + 1) * LENGTH, (_child.position[0] + 1) * LENGTH, fill="dodger blue")
                             self.window.update()
 
                         self.window.update()
@@ -314,11 +320,11 @@ class PythonPathFinding:
             self.write_message("There is no image")
             return
         try:
-            coordfile = open("Coordinates/" + self.file_name + ".txt")
-            self.mapNW = coordfile.readline().split(",")
-            self.mapNE = coordfile.readline().split(",")
-            self.mapSW = coordfile.readline().split(",")
-            self.mapSE = coordfile.readline().split(",")
+            coord_file = open("Coordinates/" + self.file_name + ".txt")
+            self.mapNW = coord_file.readline().split(",")
+            self.mapNE = coord_file.readline().split(",")
+            self.mapSW = coord_file.readline().split(",")
+            self.mapSE = coord_file.readline().split(",")
         except IOError:
             self.write_message("There is no coordinate file")
         if img.size[0] > img.size[1]:  # 가로로 김
@@ -370,7 +376,7 @@ class PythonPathFinding:
         tag_name = "rect" + self.convert_rectangle_num(x) + self.convert_rectangle_num(y)
         if not self.mode_number == 0:
             self.img_canvas.create_rectangle(
-                x * LENGTH, y * LENGTH, (x + 1) * LENGTH, (y + 1) * LENGTH, tag=tag_name, fill=Color[self.mode_number])
+                x * LENGTH, y * LENGTH, (x + 1) * LENGTH, (y + 1) * LENGTH, tag=tag_name, fill=COLORS[self.mode_number])
             self.board[logical_position[1]][logical_position[0]] = self.mode_number  # fixed
 
     def delete_rectangle(self, logical_position):
@@ -451,7 +457,7 @@ class PythonPathFinding:
         self.cmd_window.config(state="disabled")
         self.cmd_window.see(END)
 
-    def do_command(self, event):
+    def do_command(self, event):  # Don't remove event
         command = str(self.command.get())
         self.command.delete(0, len(command))
         self.cmd_window.config(state="normal")
