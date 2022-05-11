@@ -14,7 +14,7 @@ LENGTH = 14
 COLORS = {0: "none", 1: "white", 2: "green", 3: "red"}  # 열린 목록 닫힌 목록 길 등은 나중에 추가
 
 
-class PythonPathFinding:
+class CamelPathFinding:
     # ------------------------------------------------------------------
     # Initialization Functions:
     # ------------------------------------------------------------------
@@ -510,5 +510,5 @@ class PythonPathFinding:
         self.cmd_window.see(END)
 
 
-PythonPathFinding()
+CamelPathFinding()
 mainloop()
