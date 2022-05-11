@@ -22,6 +22,9 @@ class CamelPathFinding:
         self.coordinates = pd.DataFrame()
         self.x_coordinates = []
         self.y_coordinates = []
+        self.coordinates_of_path = pd.DataFrame()
+        self.x_coordinates_of_path = []
+        self.y_coordinates_of_path = []
         self.mapSE = None
         self.mapSW = None
         self.mapNE = None
@@ -75,7 +78,7 @@ class CamelPathFinding:
                                "help : show details of commands\n" +
                                "clear : clean up the terminal log\n")
         Button(self.window, text="coord", font=36, fg="black", background="white", height=2, width=6,
-               command=self.click_button_none).place(x=400, y=630)
+               command=self.click_button_coord).place(x=400, y=630)
         Button(self.window, text="wall", font=36, fg="black", background="white", height=2, width=6,
                command=self.click_button_wall).place(x=520, y=630)
         Button(self.window, text="start", font=36, fg="black", background="white", height=2, width=6,
@@ -134,7 +137,7 @@ class CamelPathFinding:
     # ---------------------------------------------------------
     # Button Command function
     # ---------------------------------------------------------
-    def click_button_none(self):
+    def click_button_coord(self):
         if self.board_on:
             self.mode_number = 0
 
@@ -419,20 +422,27 @@ class CamelPathFinding:
         else:
             return "00" + str(num)
 
-    def get_coordinates(self, x, y):
+    def calc_grid_coordinates(self, x, y):
         each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
         each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
         x_coordinate = str(float(self.mapNW[0]) + each_x * x)
         y_coordinate = str(float(self.mapNW[1]) + each_y * y)
-        self.x_coordinates.append(x_coordinate)
-        self.y_coordinates.append(y_coordinate)
+        return x_coordinate, y_coordinate
+
+    def record_coordinates(self, x, y, x_list, y_list):
+        x_coordinate, y_coordinate = self.calc_grid_coordinates(x, y)
+        x_list.append(x_coordinate)
+        y_list.append(y_coordinate)
+
+    def show_coordinates(self, x, y):
+        x_coordinate, y_coordinate = self.calc_grid_coordinates(x, y)
         self.write_message(x_coordinate + ", " + y_coordinate)
 
-    def save_coordinates(self):
-        self.coordinates["x 좌표"] = self.x_coordinates
-        self.coordinates["y 좌표"] = self.y_coordinates
-        self.coordinates.to_csv("Coordinates/" + self.file_name + ".csv", encoding="utf-8-sig", index=False)
-        self.coordinates.to_excel("Coordinates/" + self.file_name + ".xlsx", index=False)
+    def save_coordinates(self, x_list, y_list, xy_list):
+        xy_list["x 좌표"] = x_list
+        xy_list["y 좌표"] = y_list
+        xy_list.to_csv("Coordinates/" + self.file_name + ".csv", encoding="utf-8-sig", index=False)
+        xy_list.to_excel("Coordinates/" + self.file_name + ".xlsx", index=False)
         messagebox.showinfo("Notion", "save completed")
 
     def click(self, event):
@@ -442,7 +452,8 @@ class CamelPathFinding:
             # 버튼 눌렀을 때 사각형이 클릭 되었다고 인식 하지 않기 위해
             if not self.is_grid_occupied(logical_position):
                 if self.mode_number == 0:
-                    self.get_coordinates(logical_position[0], logical_position[1])
+                    self.show_coordinates(logical_position[0], logical_position[1])
+                    self.record_coordinates(logical_position[0], logical_position[1], self.x_coordinates, self.y_coordinates)
                 elif self.mode_number == 2:
                     if self.start_count == 0:
                         self.draw_rectangle(logical_position)
@@ -491,7 +502,7 @@ class CamelPathFinding:
             self.set_background()
         elif command_list[0] == "coor":
             self.file_name = command_list[1]
-            self.save_coordinates()
+            self.save_coordinates(self.x_coordinates, self.y_coordinates, self.coordinates)
         elif command_list[0] == "clear":
             self.cmd_window.config(state="normal")
             self.cmd_window.delete(1.0, END)
