@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import numpy as np
+import pandas as pd
 
 # Define useful parameters
 IMAGE_WIDTH = 1400
@@ -18,6 +19,9 @@ class PythonPathFinding:
     # Initialization Functions:
     # ------------------------------------------------------------------
     def __init__(self):
+        self.coordinates = pd.DataFrame()
+        self.x_coordinates = []
+        self.y_coordinates = []
         self.mapSE = None
         self.mapSW = None
         self.mapNE = None
@@ -67,6 +71,7 @@ class PythonPathFinding:
         self.guide.config(text="save : save custom grid map to npy file\n" +
                                "load : load your npy file into grip map\n" +
                                "setbg : set background image and coordinates\n" +
+                               "coor : save coordinates as file clicked with coord \n"  
                                "help : show details of commands\n" +
                                "clear : clean up the terminal log\n")
         Button(self.window, text="coord", font=36, fg="black", background="white", height=2, width=6,
@@ -417,7 +422,18 @@ class PythonPathFinding:
     def get_coordinates(self, x, y):
         each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
         each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
-        self.write_message(str(float(self.mapNW[0]) + each_x * x) + ", " + str(float(self.mapNW[1]) + each_y * y))
+        x_coordinate = str(float(self.mapNW[0]) + each_x * x)
+        y_coordinate = str(float(self.mapNW[1]) + each_y * y)
+        self.x_coordinates.append(x_coordinate)
+        self.y_coordinates.append(y_coordinate)
+        self.write_message(x_coordinate + ", " + y_coordinate)
+
+    def save_coordinates(self):
+        self.coordinates["x 좌표"] = self.x_coordinates
+        self.coordinates["y 좌표"] = self.y_coordinates
+        self.coordinates.to_csv("Coordinates/" + self.file_name + ".csv", encoding="utf-8-sig", index=False)
+        self.coordinates.to_excel("Coordinates/" + self.file_name + ".xlsx", index=False)
+        messagebox.showinfo("Notion", "save completed")
 
     def click(self, event):
         if self.board_on:
@@ -473,6 +489,9 @@ class PythonPathFinding:
         elif command_list[0] == "setbg":
             self.file_name = command_list[1]
             self.set_background()
+        elif command_list[0] == "coor":
+            self.file_name = command_list[1]
+            self.save_coordinates()
         elif command_list[0] == "clear":
             self.cmd_window.config(state="normal")
             self.cmd_window.delete(1.0, END)
@@ -483,6 +502,7 @@ class PythonPathFinding:
             self.write_message("- load + {fileName}: save를 통해 저장됐었던 {fileName}.npy 파일을 불러와 벽, 시작점, 도착점을 보여준다.")
             self.write_message(
                 "- setbg + {fileName}: {fileName}.png가 background 사진으로 깔리고, 만약 {fileName}.txt가 있다면 불러와 좌표를 설정한다.")
+            self.write_message("- coor + {fileName}: coord 클릭을 통해 얻었던 좌표들을 {fileName}.csv & {fileName}.xlsx에 저장한다.")
             self.write_message("- help: command들에 대한 자세한 설명을 볼 수 있다.")
             self.write_message("- clear: 현재 떠있는 터미널 로그를 전부 삭제한다.")
         else:
