@@ -303,7 +303,6 @@ class CamelPathFinding:
                         open_list.append(child)
                         # time.sleep(0.5)
 
-             # 초기화
             self.x_coordinates_of_astar, self.y_coordinates_of_astar = [], []  # 초기화
 
             start = (np.where(self.board == 2)[0].tolist()[0],
