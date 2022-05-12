@@ -20,11 +20,13 @@ class CamelPathFinding:
     # ------------------------------------------------------------------
     def __init__(self):
         self.coordinates = pd.DataFrame()
-        self.x_coordinates = []
-        self.y_coordinates = []
-        self.coordinates_of_path = pd.DataFrame()
-        self.x_coordinates_of_path = []
-        self.y_coordinates_of_path = []
+        self.x_coordinate = None
+        self.y_coordinate = None
+        self.x_coord_list = []
+        self.y_coord_list = []
+        self.coordinates_of_astar = pd.DataFrame()
+        self.x_coordinates_of_astar = []
+        self.y_coordinates_of_astar = []
         self.mapSE = None
         self.mapSW = None
         self.mapNE = None
@@ -73,8 +75,8 @@ class CamelPathFinding:
         self.guide.place(x=1420, y=600)
         self.guide.config(text="save : save custom grid map to npy file\n" +
                                "load : load your npy file into grip map\n" +
-                               "setbg : set background image and coordinates\n" +
-                               "coor : save coordinates as file clicked with coord \n"  
+                               "set : set background image and coordinates\n" +
+                               "ac : save astar path coordinates as file \n"  
                                "help : show details of commands\n" +
                                "clear : clean up the terminal log\n")
         Button(self.window, text="coord", font=36, fg="black", background="white", height=2, width=6,
@@ -227,6 +229,10 @@ class CamelPathFinding:
                             self.img_canvas.create_rectangle(
                                 (_cell[1]) * LENGTH, (_cell[0]) * LENGTH, (_cell[1] + 1) * LENGTH, (_cell[0] + 1) * LENGTH,
                                 fill="yellow")
+                            # path 좌표 저장
+                            self.convert_logical_position_to_coordinates([_cell[1], _cell[0]])
+                            self.record_coordinates(self.x_coordinates_of_astar, self.y_coordinates_of_astar)
+
                         self.window.update()
 
                     if current_node.position == end_node.position:
@@ -297,6 +303,9 @@ class CamelPathFinding:
                         open_list.append(child)
                         # time.sleep(0.5)
 
+             # 초기화
+            self.x_coordinates_of_astar, self.y_coordinates_of_astar = [], []  # 초기화
+
             start = (np.where(self.board == 2)[0].tolist()[0],
                      np.where(self.board == 2)[1].tolist()[0])
             end = (np.where(self.board == 3)[0].tolist()[0],
@@ -357,7 +366,7 @@ class CamelPathFinding:
         self.img_canvas.bind("<Button-1>", self.click)
         self.img_canvas.create_image(0, 0, anchor=NW, image=self.photo)
         self.board_zero()
-        messagebox.showinfo("Notion", "setbg completed")
+        messagebox.showinfo("Notion", "set background completed")
         self.board_on = True
 
     def load_count(self):
@@ -422,27 +431,25 @@ class CamelPathFinding:
         else:
             return "00" + str(num)
 
-    def calc_grid_coordinates(self, x, y):
+    def convert_logical_position_to_coordinates(self, logical_position):
+        x, y = logical_position
         each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
         each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
-        x_coordinate = str(float(self.mapNW[0]) + each_x * x)
-        y_coordinate = str(float(self.mapNW[1]) + each_y * y)
-        return x_coordinate, y_coordinate
+        self.x_coordinate = str(float(self.mapNW[0]) + each_x * x)
+        self.y_coordinate = str(float(self.mapNW[1]) + each_y * y)
 
-    def record_coordinates(self, x, y, x_list, y_list):
-        x_coordinate, y_coordinate = self.calc_grid_coordinates(x, y)
-        x_list.append(x_coordinate)
-        y_list.append(y_coordinate)
+    def record_coordinates(self, x_coordinates, y_coordinates):
+        x_coordinates.append(self.x_coordinate)
+        y_coordinates.append(self.y_coordinate)
 
-    def show_coordinates(self, x, y):
-        x_coordinate, y_coordinate = self.calc_grid_coordinates(x, y)
-        self.write_message(x_coordinate + ", " + y_coordinate)
+    def show_coordinates(self):
+        self.write_message(self.x_coordinate + ", " + self.y_coordinate)
 
     def save_coordinates(self, x_list, y_list, xy_list):
         xy_list["x 좌표"] = x_list
         xy_list["y 좌표"] = y_list
-        xy_list.to_csv("Coordinates/" + self.file_name + ".csv", encoding="utf-8-sig", index=False)
-        xy_list.to_excel("Coordinates/" + self.file_name + ".xlsx", index=False)
+        xy_list.to_csv("AstarCoordinates/" + self.file_name + ".csv", encoding="utf-8-sig", index=False)
+        xy_list.to_excel("AstarCoordinates/" + self.file_name + ".xlsx", index=False)
         messagebox.showinfo("Notion", "save completed")
 
     def click(self, event):
@@ -452,8 +459,9 @@ class CamelPathFinding:
             # 버튼 눌렀을 때 사각형이 클릭 되었다고 인식 하지 않기 위해
             if not self.is_grid_occupied(logical_position):
                 if self.mode_number == 0:
-                    self.show_coordinates(logical_position[0], logical_position[1])
-                    self.record_coordinates(logical_position[0], logical_position[1], self.x_coordinates, self.y_coordinates)
+                    self.convert_logical_position_to_coordinates(logical_position)
+                    self.show_coordinates()
+                    self.record_coordinates(self.x_coord_list, self.y_coord_list)
                 elif self.mode_number == 2:
                     if self.start_count == 0:
                         self.draw_rectangle(logical_position)
@@ -497,12 +505,13 @@ class CamelPathFinding:
         elif command_list[0] == "load":
             self.file_name = command_list[1]
             self.load_file()
-        elif command_list[0] == "setbg":
+        elif command_list[0] == "set":
             self.file_name = command_list[1]
             self.set_background()
-        elif command_list[0] == "coor":
+        elif command_list[0] == "ac":
             self.file_name = command_list[1]
-            self.save_coordinates(self.x_coordinates, self.y_coordinates, self.coordinates)
+            self.save_coordinates(self.x_coordinates_of_astar, self.y_coordinates_of_astar, self.coordinates_of_astar)
+            self.coordinates_of_astar = pd.DataFrame()
         elif command_list[0] == "clear":
             self.cmd_window.config(state="normal")
             self.cmd_window.delete(1.0, END)
@@ -512,8 +521,8 @@ class CamelPathFinding:
             self.write_message("- save + {fileName}: 벽, 시작점, 도착점의 정보를 {fileName}.npy 확장자로 저장한다.")
             self.write_message("- load + {fileName}: save를 통해 저장됐었던 {fileName}.npy 파일을 불러와 벽, 시작점, 도착점을 보여준다.")
             self.write_message(
-                "- setbg + {fileName}: {fileName}.png가 background 사진으로 깔리고, 만약 {fileName}.txt가 있다면 불러와 좌표를 설정한다.")
-            self.write_message("- coor + {fileName}: coord 클릭을 통해 얻었던 좌표들을 {fileName}.csv & {fileName}.xlsx에 저장한다.")
+                "- set + {fileName}: {fileName}.png가 background 사진으로 깔리고, 만약 {fileName}.txt가 있다면 불러와 좌표를 설정한다.")
+            self.write_message("- ac + {fileName}: astar로 찾아낸 path의 좌표들을 {fileName}.csv & {fileName}.xlsx에 저장한다.")
             self.write_message("- help: command들에 대한 자세한 설명을 볼 수 있다.")
             self.write_message("- clear: 현재 떠있는 터미널 로그를 전부 삭제한다.")
         else:
