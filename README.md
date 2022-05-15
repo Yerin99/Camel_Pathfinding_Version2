@@ -25,14 +25,17 @@ Each button functions as follows.
 * Reset Button: 모든 선택 영역을 초기화 시킨다.
 
 Each command functions as follows. 
-> {fileName}은 확장자를 제외한 당신이 실제로 사용할 파일의 이름을 뜻합니다. 
+> {fileName} is a real file name which you really target to use.  
+> (Except for the extension) 
 
 
-* save + {fileName}: 벽, 시작점, 도착점의 정보를 {fileName}.npy 확장자로 저장한다.
-* load + {fileName}: save를 통해 저장됐었던 {fileName}.npy 파일을 불러와 벽, 시작점, 도착점을 보여준다.
-* setbg + {fileName}: {fileName}.png가 background 사진으로 깔리고, 만약 {fileName}.txt가 있다면 불러와 좌표를 설정한다.
-* help: command들에 대한 자세한 설명을 볼 수 있다. 
-* clear: 현재 떠있는 터미널 로그를 전부 삭제한다.
+- save : save custom grid map to npy file
+- load : load your npy file into grip map 
+- set : set background image and coordinates
+- ac : save astar path coordinates as file
+- show : show coordinates of path to grid
+- help : show details of commands
+- clear : clean up the terminal log
 
 
 ### 1.  And then follow this desription.
