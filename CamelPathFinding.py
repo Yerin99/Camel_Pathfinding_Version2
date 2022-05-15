@@ -19,6 +19,10 @@ class CamelPathFinding:
     # Initialization Functions:
     # ------------------------------------------------------------------
     def __init__(self):
+        self.x_logical_position = None
+        self.y_logical_position = None
+        self.each_x = None
+        self.each_y = None
         self.coordinates = pd.DataFrame()
         self.x_coordinate = None
         self.y_coordinate = None
@@ -71,12 +75,13 @@ class CamelPathFinding:
         self.cmd_window.config(state="disabled")
         self.scrollbar.config(command=self.cmd_window.yview)
         self.cmd_window.pack()
-        self.guide = Label(self.window, width=39, height=6, anchor=NW, justify="left", background="white")
-        self.guide.place(x=1420, y=600)
+        self.guide = Label(self.window, width=39, height=7, anchor=NW, justify="left", background="white")
+        self.guide.place(x=1420, y=590)
         self.guide.config(text="save : save custom grid map to npy file\n" +
                                "load : load your npy file into grip map\n" +
                                "set : set background image and coordinates\n" +
-                               "ac : save astar path coordinates as file \n"  
+                               "ac : save astar path coordinates as file \n" +
+                               "show : show coordinates of path to grid \n" +
                                "help : show details of commands\n" +
                                "clear : clean up the terminal log\n")
         Button(self.window, text="coord", font=36, fg="black", background="white", height=2, width=6,
@@ -323,6 +328,23 @@ class CamelPathFinding:
         self.initialize_board()
         self.load_count()
 
+    def draw_coordinates_path(self):
+        try:
+            coordinates_path_file = open("CoordinatesPath/" + self.file_name + ".txt")
+            while True:
+                line = coordinates_path_file.readline()
+                if not line:
+                    break
+                x_c, y_c = line.split(",")
+                self.convert_coordinates_to_logical_position([x_c, y_c])
+                print(self.x_logical_position, self.y_logical_position)
+                self.img_canvas.create_rectangle(
+                    self.x_logical_position * LENGTH, self.y_logical_position * LENGTH, (self.x_logical_position + 1) * LENGTH, (self.y_logical_position + 1) * LENGTH,
+                    fill="purple")
+        except IOError:
+            self.write_message("There is no coordinates path file")
+        messagebox.showinfo("Notion", "show path coordinates completed")
+
     def set_background(self):
         if self.board_on:
             self.img_frame.destroy()
@@ -336,13 +358,15 @@ class CamelPathFinding:
             self.write_message("There is no image")
             return
         try:
-            coord_file = open("Coordinates/" + self.file_name + ".txt")
-            self.mapNW = coord_file.readline().split(",")
-            self.mapNE = coord_file.readline().split(",")
-            self.mapSW = coord_file.readline().split(",")
-            self.mapSE = coord_file.readline().split(",")
+            vertex_coordinates_file = open("VertexCoordinates/" + self.file_name + ".txt")
+            self.mapNW = vertex_coordinates_file.readline().split(",")
+            self.mapNE = vertex_coordinates_file.readline().split(",")
+            self.mapSW = vertex_coordinates_file.readline().split(",")
+            self.mapSE = vertex_coordinates_file.readline().split(",")
+            self.each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
+            self.each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
         except IOError:
-            self.write_message("There is no coordinate file")
+            self.write_message("There is no vertex coordinates file")
         if img.size[0] > img.size[1]:  # 가로로 김
             img_resize = img.resize((1400, int(img.size[1] * (1400 / img.size[0]))))
             if img_resize.size[1] % 14 != 0:
@@ -432,10 +456,13 @@ class CamelPathFinding:
 
     def convert_logical_position_to_coordinates(self, logical_position):
         x, y = logical_position
-        each_x = (float(self.mapNE[0]) - float(self.mapNW[0])) / self.horizontal_step_count
-        each_y = (float(self.mapSW[1]) - float(self.mapNW[1])) / self.vertical_step_count
-        self.x_coordinate = str(float(self.mapNW[0]) + each_x * x)
-        self.y_coordinate = str(float(self.mapNW[1]) + each_y * y)
+        self.x_coordinate = str(float(self.mapNW[0]) + self.each_x * x)
+        self.y_coordinate = str(float(self.mapNW[1]) + self.each_y * y)
+
+    def convert_coordinates_to_logical_position(self, coordinates):
+        x_c, y_c = map(float, coordinates)
+        self.x_logical_position = (x_c - float(self.mapNW[0])) / self.each_x
+        self.y_logical_position = (y_c - float(self.mapNW[1])) / self.each_y
 
     def record_coordinates(self, x_coordinates, y_coordinates):
         x_coordinates.append(self.x_coordinate)
@@ -511,6 +538,9 @@ class CamelPathFinding:
             self.file_name = command_list[1]
             self.save_coordinates(self.x_coordinates_of_astar, self.y_coordinates_of_astar, self.coordinates_of_astar)
             self.coordinates_of_astar = pd.DataFrame()
+        elif command_list[0] == "show":
+            self.file_name = command_list[1]
+            self.draw_coordinates_path()
         elif command_list[0] == "clear":
             self.cmd_window.config(state="normal")
             self.cmd_window.delete(1.0, END)
