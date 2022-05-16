@@ -29,11 +29,11 @@ Each command functions as follows.
 > (Except for the extension) 
 
 
-- save + {fileName} : save custom grid map to npy file
-- load + {fileName} : load your npy file into grip map 
-- set + {fileName} : set background image and coordinates
-- ac + {fileName} : save astar path coordinates as file
-- show + {fileName} : show coordinates of path to grid
+- save + {fileName} : save custom grid map to npy file --- directory : GridMap
+- load + {fileName} : load your npy file into grip map --- directory : GridMap
+- set + {fileName} : set background image and coordinates --- directory : Images, VertexCoordinates
+- ac + {fileName} : save astar path coordinates as file --- directory: AstarCoordinates
+- show + {fileName} : show coordinates of path to grid --- directory : CoordinatesPath
 - help : show details of commands
 - clear : clean up the terminal log
 
