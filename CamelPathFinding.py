@@ -336,11 +336,16 @@ class CamelPathFinding:
                 if not line:
                     break
                 x_c, y_c = line.split(",")
-                self.convert_coordinates_to_logical_position([x_c, y_c])
-                print(self.x_logical_position, self.y_logical_position)
-                self.img_canvas.create_rectangle(
-                    self.x_logical_position * LENGTH, self.y_logical_position * LENGTH, (self.x_logical_position + 1) * LENGTH, (self.y_logical_position + 1) * LENGTH,
-                    fill="purple")
+                if self.mapNW[0] <= x_c <= self.mapNE[0] and self.mapNW[1] <= y_c <= self.mapSW[1]:
+                    self.convert_coordinates_to_logical_position([x_c, y_c])
+                    print(self.x_logical_position, self.y_logical_position)
+                    self.img_canvas.create_rectangle(
+                        self.x_logical_position * LENGTH, self.y_logical_position * LENGTH,
+                        (self.x_logical_position + 1) * LENGTH, (self.y_logical_position + 1) * LENGTH,
+                        fill="purple")
+                else:
+                    self.write_message("[Out of range]")
+                    self.write_message(x_c + ", " + y_c)
         except IOError:
             self.write_message("There is no coordinates path file")
         messagebox.showinfo("Notion", "show path coordinates completed")
