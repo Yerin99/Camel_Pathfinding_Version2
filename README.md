@@ -29,11 +29,11 @@ Each command functions as follows.
 > (Except for the extension) 
 
 
-- save : save custom grid map to npy file
-- load : load your npy file into grip map 
-- set : set background image and coordinates
-- ac : save astar path coordinates as file
-- show : show coordinates of path to grid
+- save + {fileName} : save custom grid map to npy file
+- load + {fileName} : load your npy file into grip map 
+- set + {fileName} : set background image and coordinates
+- ac + {fileName} : save astar path coordinates as file
+- show + {fileName} : show coordinates of path to grid
 - help : show details of commands
 - clear : clean up the terminal log
 
@@ -66,4 +66,14 @@ Each command functions as follows.
 ### 2. Actual use case: Finding the shortest route from building 207 to building 201.
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/63496777/151465180-d51bf4ce-59e2-41c7-bafe-ba75e98c0bcf.gif)
 
+### You can now save the coordinates of the path obtained by Astar pathfinding.
+#### You can use the ac command.
 
+If you do ac + {fileName},  
+the csv and xlsx files are stored in the AstarCoordinates folder.
+
+### (x coordinates, y coordinates)-pair txt can be visualized on the program.
+#### You can use the show command.
+
+If you do show + {fileName},  
+the coordinates of the txt file in the CoordinatesPath folder are visualized on the program.
